@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Internet Infrastructure — A Guide for Child Safety Advocates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; -webkit-font-smoothing: antialiased; }
+
+:root {
+  --bg:         #141416;
+  --surface:    #1e1e22;
+  --surface-2:  #28282e;
+  --ink-1:      #f0efe8;
+  --ink-2:      #b0aea6;
+  --ink-3:      #878583;
+  --border:     rgba(255,255,255,0.07);
+  --border-mid: rgba(255,255,255,0.12);
+  --shadow:     0 4px 32px rgba(0,0,0,0.5), 0 1px 6px rgba(0,0,0,0.3);
+
+  /* Layer colours — brighter/more saturated for dark bg */
+  --c-physical:     #2dd4a0;
+  --c-naming:       #60a5fa;
+  --c-hosting:      #c084fc;
+  --c-protocol:     #fb923c;
+  --c-payments:     #f87171;
+  --c-gov:          #94a3b8;
+
+  /* Node bg — very dark tinted versions of each layer colour */
+  --c-physical-bg:  #0d2820;
+  --c-naming-bg:    #0d1f38;
+  --c-hosting-bg:   #1e0f2e;
+  --c-protocol-bg:  #2a1800;
+  --c-payments-bg:  #2a0f0f;
+  --c-gov-bg:       #161b24;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --radius: 8px;
+  --radius-lg: 12px;
+  --drawer-w: 480px;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink-1);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.site-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  gap: 1rem;
+}
+.site-title {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 0.95rem; font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.site-subtitle {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+.header-hint {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  display: flex; align-items: center; gap: 5px;
+}
+
+/* ── Legend ─────────────────────────────────────────────── */
+.legend {
+  position: fixed; bottom: 1.25rem; left: 1.5rem; z-index: 40;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.4);
+}
+.legend-toggle {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0.5rem 0.875rem;
+  cursor: pointer;
+  font-size: 0.7rem; font-weight: 600; color: var(--ink-3);
+  user-select: none;
+  white-space: nowrap;
+}
+.legend-toggle:hover { color: var(--ink-1); }
+.legend-toggle-icon {
+  font-size: 0.6rem;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+.legend.open .legend-toggle-icon { transform: rotate(180deg); }
+.legend-body {
+  display: none;
+  flex-direction: column; gap: 5px;
+  padding: 0 0.875rem 0.6rem;
+}
+.legend.open .legend-body { display: flex; }
+.legend-row {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 0.7rem; font-weight: 500; color: var(--ink-2);
+}
+.legend-pip {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* ── Main canvas ─────────────────────────────────────────── */
+.canvas-wrap {
+  position: fixed;
+  top: 52px; left: 0; right: 0; bottom: 0;
+  overflow: hidden;
+  transition: right 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.canvas-wrap.drawer-open {
+  right: var(--drawer-w);
+}
+#main-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: default;
+}
+
+/* ── Drawer ──────────────────────────────────────────────── */
+.drawer {
+  position: fixed;
+  top: 52px; right: 0; bottom: 0;
+  width: var(--drawer-w);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  overflow-y: auto;
+  overflow-x: hidden;
+  transform: translateX(100%);
+  transition: transform 0.28s var(--ease-out);
+  z-index: 30;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-2) transparent;
+}
+.drawer.open {
+  transform: translateX(0);
+}
+.drawer-inner {
+  padding: 1.5rem 1.5rem 3rem;
+}
+.drawer-close {
+  position: sticky; top: 0;
+  display: flex; justify-content: flex-end;
+  padding: 0.5rem 0 0.75rem;
+  background: var(--surface);
+  z-index: 2;
+}
+.drawer-close button {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ink-3);
+  cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+}
+.drawer-close button:hover { background: var(--border); }
+
+/* ── Detail content ──────────────────────────────────────── */
+.detail-eyebrow {
+  font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--node-color, var(--ink-3));
+  margin-bottom: 0.4rem;
+}
+.detail-title {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 1.35rem; font-weight: 700;
+  letter-spacing: -0.02em; line-height: 1.2;
+  color: var(--ink-1);
+  margin-bottom: 0.25rem;
+}
+.detail-subtitle {
+  font-size: 0.83rem; color: var(--ink-3);
+  margin-bottom: 1.25rem;
+}
+.tags {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  margin-bottom: 1.25rem;
+}
+.tag {
+  font-size: 0.68rem; font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 8px; border-radius: 10px;
+}
+.tag-tech   { background: var(--surface-2); color: var(--c-naming);   border: 1px solid rgba(96,165,250,0.3); }
+.tag-gov    { background: var(--surface-2); color: var(--c-gov);     border: 1px solid rgba(148,163,184,0.3); }
+.tag-safety { background: var(--surface-2); color: var(--c-protocol);border: 1px solid rgba(251,146,60,0.3); }
+
+.detail-body {
+  font-size: 0.875rem; line-height: 1.75;
+  color: var(--ink-2); margin-bottom: 1.25rem;
+}
+.detail-body p + p { margin-top: 0.65rem; }
+.detail-body em { font-style: normal; font-weight: 600; color: var(--ink-1); }
+.detail-body .hl {
+  background: var(--surface-2);
+  color: var(--node-color, var(--c-naming));
+  border-radius: 3px; padding: 1px 5px;
+  font-weight: 600; font-size: 0.8rem;
+}
+
+.lever-box {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--node-color, var(--c-naming));
+  background: var(--surface-2);
+  padding: 1rem 1.125rem;
+  margin-bottom: 1.25rem;
+}
+.lever-title {
+  font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--node-color, var(--c-naming));
+  margin-bottom: 0.5rem;
+}
+.lever-body {
+  font-size: 0.85rem; line-height: 1.7;
+  color: var(--ink-2);
+}
+
+/* ── Connections in drawer ───────────────────────────────── */
+.conn-section { margin-top: 0.25rem; }
+.conn-section-title {
+  font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+.conn-list {
+  display: flex; flex-direction: column; gap: 5px;
+}
+.conn-pill {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer; text-align: left; width: 100%;
+  transition: background 0.1s, border-color 0.1s;
+}
+.conn-pill:hover {
+  background: var(--surface-2);
+  border-color: var(--cpill-color, #60a5fa);
+}
+.conn-pill-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--cpill-color); flex-shrink: 0; margin-top: 4px;
+}
+.conn-pill-name {
+  font-size: 0.78rem; font-weight: 600; color: var(--ink-1);
+  margin-bottom: 1px; line-height: 1.3;
+}
+.conn-pill-why {
+  font-size: 0.73rem; color: var(--ink-3); line-height: 1.45;
+}
+
+/* ── SVG node interaction ────────────────────────────────── */
+.svg-node { cursor: pointer; }
+.svg-node.node-dim { filter: url(#f-grey); }
+
+/* ── Overlay (click-outside to close drawer) ─────────────── */
+.overlay {
+  display: none;
+  pointer-events: none;  /* SVG nodes stay hoverable through the overlay */
+  position: fixed; inset: 52px 0 0 0; z-index: 25;
+}
+.overlay.active { display: block; pointer-events: none; }
+
+@media (max-width: 700px) {
+  :root { --drawer-w: 100vw; }
+  .legend { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <span class="site-title">How the internet works</span>
+  <span class="site-subtitle">A guide for child safety advocates</span>
+  <span class="header-hint">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1"/><path d="M6 5v3.5M6 3.5h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    Click any node to learn about it
+  </span>
+</header>
+
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+<div class="canvas-wrap" id="canvas-wrap">
+  <svg id="main-svg" aria-label="Internet infrastructure map"></svg>
+</div>
+
+<aside class="drawer" id="drawer" aria-label="Component detail">
+  <div class="drawer-inner">
+    <div class="drawer-close">
+      <button onclick="closeDrawer()">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Close
+      </button>
+    </div>
+    <div id="drawer-content"></div>
+  </div>
+</aside>
+
+<div class="legend" id="legend">
+  <div class="legend-toggle" onclick="this.closest('.legend').classList.toggle('open')">
+    <span>Colour key</span>
+    <span class="legend-toggle-icon">▲</span>
+  </div>
+  <div class="legend-body" id="legend-body"></div>
+</div>
+
+
+<script>
+/* ─── Data ─────────────────────────────────────────────────────── */
+/* ─── Data ──────────────────────────────────────────────────── */
+const LAYERS = {
+  physical: { label: 'Physical & network',    color: 'var(--c-physical)',  bg: 'var(--c-physical-bg)'  },
+  naming:   { label: 'Naming & addressing',   color: 'var(--c-naming)',    bg: 'var(--c-naming-bg)'    },
+  hosting:  { label: 'Hosting & delivery',    color: 'var(--c-hosting)',   bg: 'var(--c-hosting-bg)'   },
+  protocol: { label: 'Protocols & standards', color: 'var(--c-protocol)',  bg: 'var(--c-protocol-bg)'  },
+  payments: { label: 'Payments & money',      color: 'var(--c-payments)',  bg: 'var(--c-payments-bg)'  },
+  gov:      { label: 'Governance & oversight',color: 'var(--c-gov)',       bg: 'var(--c-gov-bg)'       },
+};
+
+const DATA = {
+  isp: {
+    layer: 'physical',
+    title: 'Your internet provider (ISP)',
+    subtitle: 'The company that sells you your internet connection',
+    tags: ['tech','safety'],
+    body: `<p>Think of your <span class="hl">internet provider</span> — companies like BT, Sky, Virgin Media, Vodafone, or Comcast — as the water company for your household, but for data. Just as the water company owns the pipes running under your street and into your home, your internet provider owns (or rents) the cables, telephone lines, and phone masts that carry your internet traffic. Without them, you simply cannot get online.</p>
+<p>Every time you watch a video, send a message, or open a website, that data travels through your internet provider's network. This means they are one of the very few companies that can see the full picture of everything you connect to — though not necessarily what you say or do once you're there.</p>`,
+    lever: `Because your internet provider sits between you and everything on the internet, they are one of the most direct places to intervene. In the UK, internet providers are connected to the Internet Watch Foundation's blocklist — a regularly updated list of websites known to host child sexual abuse images. When a child (or anyone) tries to visit one of those sites, the internet provider quietly refuses to connect them, as if the road simply does not exist. However, this is a bit like putting a "road closed" sign on a motorway — determined people can use a detour. Tools called VPNs let people reroute their traffic through a different country, skipping the block entirely. Internet providers also keep logs of which devices connected to which websites, which can be invaluable evidence in criminal investigations.`,
+    connects: [
+      { id: 'dns',       why: 'Your internet provider runs the "phone book" service that turns website names into addresses — and can remove entries from that book' },
+      { id: 'tcpip',     why: 'Your internet provider\'s physical cables are what actually carry every packet of data' },
+      { id: 'regulator', why: 'The government can order internet providers to block certain sites or preserve certain records' },
+      { id: 'ix',        why: 'Internet providers swap traffic with each other at special hub buildings' },
+      { id: 'encryption',why: 'When traffic is encrypted, the internet provider can see where you\'re going but not what you\'re saying' },
+    ],
+    pathway: { steps: ['A harmful website is identified and reported', 'The Internet Watch Foundation adds it to its blocklist', 'Your internet provider receives the updated list', 'Their systems stop your device finding that website\'s address', 'Anyone using a VPN or different address lookup can still reach it'], highlight: 2 },
+  },
+  ix: {
+    layer: 'physical',
+    title: 'Internet exchange points',
+    subtitle: 'The motorway junctions of the internet',
+    tags: ['tech'],
+    body: `<p>Imagine the internet as a country-wide road network. Your internet provider owns the roads in your town. Another provider owns the roads in the next city. For traffic to flow between them, they need to meet somewhere — a junction where they hand deliveries to each other. That is what an <span class="hl">internet exchange point</span> does.</p>
+<p>These are physical buildings — sometimes enormous, heavily secured warehouses — where hundreds of internet providers, tech companies, and content platforms all plug their networks into a shared switching system. London's LINX, Amsterdam's AMS-IX, and Frankfurt's DE-CIX handle traffic for hundreds of millions of people. Most internet users have no idea these buildings exist, yet almost everything they do online passes through one.</p>`,
+    lever: `Because so much traffic flows through so few buildings, these are strategically significant locations for governments. Some governments have placed surveillance equipment at exchange points in order to monitor internet traffic at a national level. This is why these buildings matter to civil liberties campaigners as well as child safety advocates — whoever controls them has enormous visibility into what a country's citizens are doing online. If an exchange point were disrupted or shut down, large sections of a country's internet could simply stop working.`,
+    connects: [
+      { id: 'isp',   why: 'Internet providers meet at these buildings to hand traffic to each other' },
+      { id: 'cable', why: 'The undersea cables that carry international traffic often connect into the same buildings' },
+      { id: 'cdn',   why: 'Content delivery companies place their servers here so they are close to as many providers as possible' },
+    ],
+  },
+  cable: {
+    layer: 'physical',
+    title: 'Undersea cables and fibre networks',
+    subtitle: 'The actual physical wires the internet runs on',
+    tags: ['tech'],
+    body: `<p>When you send an email to someone in another country, that message does not travel through the air or bounce off satellites (usually). It travels down a fibre-optic cable — a bundle of glass threads thinner than a human hair that can carry billions of messages simultaneously as pulses of light. More than <span class="hl">500 of these cables</span> run along the ocean floor, connecting every continent. The total length would wrap around the Earth about 25 times.</p>
+<p>On land, a similar network of cables buried under roads and fields connects homes and cities. The familiar broadband cable coming out of your wall eventually connects — through many junctions — to this global network of glass threads. Satellite internet (like Starlink) is a real alternative, but even today it carries only a small fraction of total global traffic.</p>`,
+    lever: `For child safety purposes, this layer is almost impossible to use as a direct lever — you cannot practically intercept or filter traffic at the level of a physical ocean cable. But it matters for policy in two ways. First, it determines which country's laws apply to data as it travels — a message passing through a cable in French waters is potentially subject to French law. Second, ownership of cables is becoming politically significant: Google, Meta, and Amazon now own large portions of the undersea cable network, which gives them extraordinary infrastructure power alongside their platform power.`,
+    connects: [
+      { id: 'isp',  why: 'Your internet provider connects to international cables to carry your traffic beyond national borders' },
+      { id: 'ix',   why: 'The exchange point buildings where internet providers meet are often located where undersea cables come ashore' },
+      { id: 'cloud',why: 'Amazon, Google, and Microsoft have invested heavily in building their own undersea cable networks' },
+    ],
+  },
+  dns: {
+    layer: 'naming',
+    title: 'DNS — the internet\'s address book',
+    subtitle: 'The system that turns "google.com" into a real address',
+    tags: ['tech','safety'],
+    body: `<p>Computers do not understand names like "bbc.co.uk" — they only understand numbers. Every website actually lives at a numerical address (called an IP address), something like 151.101.0.81. The <span class="hl">Domain Name System (DNS)</span> is the internet's address book: a giant, constantly-updated directory that looks up the number for any name you type.</p>
+<p>Here's how it works in practice. You type "youtube.com" into your browser. Before it can load anything, your device silently asks a DNS server: "what is the number for youtube.com?" The DNS server looks it up and replies with the address. Your browser then connects to that address. This all happens in milliseconds, dozens of times per page load, completely invisibly.</p>
+<p>Who runs these DNS servers? Mostly your internet provider — though you can choose to use others, like Google's or Cloudflare's. This choice turns out to matter quite a lot for safety and privacy.</p>`,
+    lever: `DNS is one of the most commonly used tools in child safety policy, because it is relatively easy to remove a website from the address book. If the Internet Watch Foundation identifies a site hosting child abuse images, they can ask internet providers to remove it from their DNS systems. When anyone on that provider's network tries to look up the address, they get no answer — the site effectively vanishes, like tearing a page out of a phone book. The significant limitation: this is easy to get around. Anyone who switches to a different DNS service (there are free ones anyone can use) can look up addresses that their internet provider has removed. And a newer technology called "DNS-over-HTTPS" encrypts the lookup entirely, meaning internet providers can no longer see what their customers are looking up at all — making DNS blocking harder, but also greatly improving user privacy.`,
+    connects: [
+      { id: 'isp',      why: 'Internet providers run the DNS servers their customers use by default, so they can block entries' },
+      { id: 'registry', why: 'The authoritative, master records for each domain suffix (.com, .uk) are held by registries' },
+      { id: 'registrar',why: 'When you buy a domain name, the registrar sets up its DNS records' },
+      { id: 'cdn',      why: 'Content delivery networks use DNS to send you to the server nearest to you' },
+      { id: 'http',     why: 'Every time your browser loads a page, it first does a DNS lookup to find the address' },
+      { id: 'encryption', why: 'Encrypted DNS hides which websites you are visiting from your internet provider' },
+    ],
+  },
+  registry: {
+    layer: 'naming',
+    title: 'Domain registries',
+    subtitle: 'The official keepers of web address suffixes',
+    tags: ['tech','gov'],
+    body: `<p>Every web address ends in a suffix: <em>.com</em>, <em>.uk</em>, <em>.org</em>, <em>.net</em>. The organisation that manages and maintains the master list for each suffix is called a <span class="hl">domain registry</span>. Think of it as the Land Registry for web addresses — the official record of who owns what.</p>
+<p>Verisign manages <em>.com</em> (the world's most popular suffix, with over 150 million registered names). Nominet manages <em>.uk</em>. The Public Interest Registry manages <em>.org</em>. These are not companies you will deal with directly — they are more like the systems that underpin the market, setting the rules and holding the definitive records.</p>
+<p>Suffixes ending in a country code (.uk, .de, .au, .fr) are particularly significant because they are managed by organisations within that country, meaning national governments tend to have more direct influence over them than they do over <em>.com</em>, which is managed under a US-incorporated organisation.</p>`,
+    lever: `A registry has the power to delete or suspend a domain name entirely — removing it from the master list so that it simply ceases to work. This is a strong tool. When a harmful website's domain name is suspended at the registry level, no amount of switching DNS providers will help — the address no longer exists in the authoritative record. Registries can also require the companies that sell domain names (registrars) to collect and verify information about who is buying them, making it easier to identify bad actors. The Internet Watch Foundation and similar organisations work with registries to achieve swift suspensions of domains linked to child abuse material.`,
+    connects: [
+      { id: 'icann',    why: 'Registries that manage global suffixes like .com operate under contracts written by ICANN' },
+      { id: 'registrar',why: 'Registries set the rules that the companies selling domain names must follow' },
+      { id: 'dns',      why: 'Registries hold the authoritative master DNS records for their suffix' },
+      { id: 'regulator',why: 'UK-based registries like Nominet can be subject to UK government pressure in ways that .com cannot' },
+      { id: 'leo',      why: 'Police can apply to a registry to have a domain name suspended as part of an investigation' },
+    ],
+  },
+  registrar: {
+    layer: 'naming',
+    title: 'Domain registrars',
+    subtitle: 'The shops where people buy website addresses',
+    tags: ['tech','gov','safety'],
+    body: `<p>If domain registries are the Land Registry, then <span class="hl">domain registrars</span> are the estate agents — the businesses you actually deal with when you want to buy a web address. Companies like GoDaddy, Namecheap, and Squarespace are registrars. When anyone — including someone with harmful intentions — sets up a new website, the first thing they do is buy a domain name from a registrar.</p>
+<p>Registrars are the part of this system that has a direct commercial relationship with the person or organisation that owns a website. They know (or are supposed to know) who their customers are. This makes them important both as a point of accountability and as a potential weak link — if a registrar is lax about checking who its customers are, it becomes easy for bad actors to register domain names anonymously.</p>`,
+    lever: `Registrars can cancel a domain name, effectively pulling a website's address out from under it. They are also responsible for collecting registration information — name, address, contact details — known as WHOIS data. This information can be vital for law enforcement trying to identify who is running a harmful site. However, privacy laws (particularly GDPR in Europe) have made much of this data private, creating genuine tension between protecting privacy and enabling accountability. A civil society organisation that discovers a harmful website can make an abuse report directly to the registrar. The quality of response varies enormously.`,
+    connects: [
+      { id: 'registry', why: 'Registrars must be formally approved by registries and must follow their rules' },
+      { id: 'icann',    why: 'ICANN sets the minimum standards that all registrars worldwide must meet' },
+      { id: 'dns',      why: 'When you buy a domain name, the registrar sets up the DNS records that point it at a website' },
+      { id: 'leo',      why: 'When police need to know who owns a website, the registrar is usually the first place they ask' },
+      { id: 'hosting',  why: 'Many registrars also sell web hosting, so one company may control both the address and the content' },
+    ],
+  },
+  icann: {
+    layer: 'naming',
+    title: 'ICANN',
+    subtitle: 'The global body that oversees web addresses',
+    tags: ['gov'],
+    body: `<p>Imagine that every country had its own version of the internet with completely different web addresses — and none of them worked across borders. <span class="hl">ICANN</span> (the Internet Corporation for Assigned Names and Numbers) exists to prevent that. It is the organisation that coordinates the global system of web addresses and numerical internet addresses so that the internet works as one coherent network rather than thousands of incompatible islands.</p>
+<p>ICANN is a non-profit based in the United States, but it operates through what is called a "multi-stakeholder" model — meaning governments, businesses, technical experts, and civil society groups all have formal seats at the table and can participate in making its policies. It approves which new domain suffixes can exist, sets the rules that registries and registrars must follow, and can ultimately revoke the right to operate a domain suffix entirely.</p>
+<p>Crucially, ICANN does not control the content of websites. It only controls the naming and numbering system — the address book, not what is inside the buildings.</p>`,
+    lever: `ICANN's most direct relevance to child safety is through its policies on who owns domain names and how they can be traced. Advocates have campaigned within ICANN's processes to require better verification of who is registering domain names, faster abuse response from registrars, and better access for legitimate safety researchers to registration data. ICANN processes are slow and technical, but they set the floor for global standards. One unusually accessible avenue: ICANN formally guarantees civil society a seat at the table, so child safety organisations can engage directly with its policy-making.`,
+    connects: [
+      { id: 'registry',  why: 'ICANN writes and enforces the contracts that allow registries to manage domain suffixes' },
+      { id: 'registrar', why: 'ICANN approves every registrar allowed to sell domain names and can strip that approval' },
+      { id: 'igi',       why: 'ICANN sits within a broader ecosystem of internet governance bodies at the UN level' },
+      { id: 'regulator', why: 'National governments engage ICANN through a formal advisory committee' },
+    ],
+  },
+  hosting: {
+    layer: 'hosting',
+    title: 'Web hosting',
+    subtitle: 'The storage units where websites keep their files',
+    tags: ['tech','safety'],
+    body: `<p>A website is just a collection of files — text, images, videos, code. Those files have to live somewhere physical, on a computer that is switched on and connected to the internet 24 hours a day. <span class="hl">Web hosting companies</span> provide that: racks of powerful computers in secure buildings (data centres), where they store the files for thousands or millions of websites and serve them up whenever someone visits.</p>
+<p>Think of hosting like renting storage space in a warehouse. The domain name (your web address) is like your business name on the sign outside; the hosting is the actual shelves where your goods are stored. You can move your stock to a different warehouse while keeping the same business name, just as a website can move hosting providers while keeping the same web address.</p>
+<p>Hosting companies range from huge global businesses to tiny local operations. A harmful website might be hosted anywhere in the world — which matters enormously for what can be done about it.</p>`,
+    lever: `Because hosting companies physically store the files that make up a website, they have the most direct power to remove content. If a hosting company receives a valid report that a site on their servers contains child abuse images, they can delete the files and suspend the account within hours. The Internet Watch Foundation sends takedown notices to hosting companies around the world, and the best ones act within minutes. The problem is inconsistency: a reputable UK or US hosting company will respond quickly, but a company based in a country with weak rule of law might ignore requests entirely, or even be complicit in hosting harmful material. Jurisdiction — where in the world the hosting company is based — matters enormously.`,
+    connects: [
+      { id: 'cloud',     why: 'Most web hosting companies actually rent their server space from large cloud providers' },
+      { id: 'dns',       why: 'The address book system points visitors to the hosting company\'s servers' },
+      { id: 'registrar', why: 'The same company often sells both your web address and your hosting space' },
+      { id: 'cdn',       why: 'Content delivery networks act as a speed layer in front of the hosting company' },
+      { id: 'leo',       why: 'Police can obtain a legal order compelling a hosting company to hand over files or preserve evidence' },
+      { id: 'tsa',       why: 'Hosting companies\' terms and conditions define what content they will and will not allow' },
+    ],
+  },
+  cloud: {
+    layer: 'hosting',
+    title: 'Cloud services',
+    subtitle: 'The enormous shared computer infrastructure most of the internet runs on',
+    tags: ['tech','safety'],
+    body: `<p>Thirty years ago, every company that wanted a website had to buy and maintain its own computers. Today, almost no one does. Instead, they rent computing power, storage, and networking from one of a handful of enormous <span class="hl">cloud service providers</span> — chiefly Amazon Web Services (AWS), Microsoft Azure, and Google Cloud. Together, these three companies provide the underlying infrastructure for the vast majority of apps and websites that exist, including most of the platforms children use every day.</p>
+<p>The "cloud" is not some magical ethereal thing — it is very much physical. It is millions of servers in enormous, heavily secured warehouses across dozens of countries. What makes it "cloud" is that you rent it rather than own it, and you can scale up or down instantly. A startup with five users and a company with 500 million users can both use the same infrastructure.</p>
+<p>This concentration is significant. When an app or platform runs on AWS and AWS terminates their account, the platform goes dark — sometimes within hours.</p>`,
+    lever: `Cloud providers have shown they are willing to act against platforms hosting illegal content. When journalists and campaigners exposed that certain platforms were hosting child abuse material, those platforms lost their cloud hosting and effectively ceased to operate. This is one of the most powerful levers available — but it is also one of the most contested, because it means a small number of private American companies are making decisions about what can and cannot exist on the internet, with very limited public accountability. Cloud providers are also being asked, increasingly, to apply child safety standards at the infrastructure level — for example, scanning stored files for known child abuse images.`,
+    connects: [
+      { id: 'hosting',  why: 'The companies that sell web hosting to others are usually renting their server space from cloud providers' },
+      { id: 'cdn',      why: 'Content delivery networks are often built on top of cloud provider infrastructure' },
+      { id: 'tcpip',    why: 'Cloud providers manage the physical network infrastructure that data travels through' },
+      { id: 'leo',      why: 'When police request data from US-based apps, they are almost always requesting it from a cloud provider' },
+      { id: 'regulator',why: 'Regulators are increasingly requiring cloud providers to hold data in specific countries' },
+      { id: 'payments', why: 'Cloud services cost money, so cutting off a platform\'s ability to pay its cloud bills can shut it down' },
+    ],
+  },
+  cdn: {
+    layer: 'hosting',
+    title: 'Content delivery networks (CDNs)',
+    subtitle: 'The system that puts copies of websites near you',
+    tags: ['tech','safety'],
+    body: `<p>Imagine a popular book that everyone in the country wants to read at once. One option is to have a single copy in a central library and make everyone travel there. A better option is to print copies and put them in libraries in every town. <span class="hl">Content delivery networks (CDNs)</span> do something like this for websites and apps.</p>
+<p>A CDN takes copies of a website's images, videos, and files and stores them on servers located close to users all around the world. When you load a YouTube video in Manchester, you are probably not connecting to a server in California — you are connecting to a YouTube server somewhere in the UK. This makes things faster, but it also means the same content is held in many places at once.</p>
+<p>Companies like Cloudflare also provide a form of protection service — they sit between the user and the website and can filter out cyberattacks. Cloudflare alone processes traffic for tens of millions of websites, making it one of the most significant chokepoints in the entire internet.</p>`,
+    lever: `CDN providers have been used as a lever against harmful platforms. When a platform lost its CDN service after civil society campaigns, it found itself suddenly very slow and vulnerable to attacks, and struggled to survive. Because CDNs sit between users and content, they can in principle filter or block certain content. Cloudflare also runs a DNS service used by hundreds of millions of people, and its decisions about what to block on that service have significant real-world effects. CDN companies' policies on what they will and will not serve are an active area of civil society engagement — they occupy a uniquely powerful position because so much traffic passes through them.`,
+    connects: [
+      { id: 'dns',      why: 'CDNs use the address book system to send users to the nearest copy of the content' },
+      { id: 'isp',      why: 'CDN servers are often placed inside or very close to internet provider networks' },
+      { id: 'ix',       why: 'CDN companies place servers at the exchange point buildings where internet providers meet' },
+      { id: 'hosting',  why: 'CDNs are a speed layer that sits in front of the hosting company\'s servers' },
+      { id: 'encryption',why: 'CDNs handle the encryption process between users and websites' },
+      { id: 'tsa',      why: 'CDN companies\' own rules can be used to terminate service to harmful platforms' },
+    ],
+  },
+  appstore: {
+    layer: 'hosting',
+    title: 'App stores',
+    subtitle: 'The gatekeepers that control what apps reach your phone',
+    tags: ['tech','gov','safety'],
+    body: `<p>When you want to install an app on your phone, you almost certainly do so through an <span class="hl">app store</span> — Apple's App Store for iPhones, or Google Play for Android phones. These are not passive catalogues, like a library. They are active gatekeepers that review every app before it is allowed in, and that can remove apps at any time.</p>
+<p>This is quite different from the web. Anyone can put up a website without getting anyone's permission. But to get an app onto the world's phones, you must pass through Apple or Google's approval process. Both companies prohibit apps that contain child sexual abuse material and apps that facilitate grooming. They also set rules about age ratings, privacy, and what kinds of data apps can collect.</p>
+<p>This gives app stores an unusual degree of structural power over the apps that children use — and real accountability mechanisms when that power is exercised well.</p>`,
+    lever: `App stores are one of the most meaningful safety levers for the mobile internet. They can require apps to have age ratings, to implement parental controls, to verify users' ages, and to meet child safety design standards as a condition of being listed at all. The UK's Children's Code (Age Appropriate Design Code) has pushed both stores to require child-safe design from apps aimed at children. App stores can also remove apps that are found to be unsafe — and without app store distribution, most apps simply cannot reach users. The gap in this system is "sideloading" — installing apps that bypass the app store entirely — which is possible on Android and increasingly contested for iPhones.`,
+    connects: [
+      { id: 'cloud',     why: 'App stores are themselves huge cloud platforms, run by Apple and Google' },
+      { id: 'tsa',       why: 'App store rules set a floor for what safety standards all listed apps must meet' },
+      { id: 'regulator', why: 'Regulators are increasingly requiring app stores to enforce child safety standards' },
+      { id: 'payments',  why: 'App stores control in-app payments and can cut off revenue to apps that break the rules' },
+    ],
+  },
+  http: {
+    layer: 'protocol',
+    title: 'HTTP and HTTPS',
+    subtitle: 'The common language browsers and websites use to talk to each other',
+    tags: ['tech'],
+    body: `<p>When a British person visits Japan, they might not speak Japanese — but if both of them speak English, they can communicate. The internet has an equivalent: a shared language called <span class="hl">HTTP</span> (HyperText Transfer Protocol) that all web browsers and web servers use, regardless of where they are in the world or what operating system they run.</p>
+<p>HTTP is the set of rules that governs how your browser asks for a page ("please send me the contents of this web page") and how the server replies ("here it is" or "that page does not exist" — which is what the familiar "404 error" means). Every time you click a link or type a web address, HTTP is what makes the exchange happen.</p>
+<p>HTTPS is the same language, but spoken in a sealed room that nobody else can listen to. The "S" stands for "Secure" — it means the conversation between your browser and the website is encrypted, so that nobody in the middle can read it. You can tell you are using HTTPS by the padlock icon in your browser's address bar.</p>`,
+    lever: `The shift from HTTP to HTTPS — which is now nearly universal — has had a significant impact on safety policy. On the positive side, it means that criminals can no longer easily intercept your communications. On the more complicated side, it means that internet providers and network operators can no longer see what content is flowing through their networks — only where it is going. A provider might know you visited a website, but not what you read or watched there. This limits the ability to filter harmful content at the network level, which pushes the responsibility for content moderation up the chain to the platforms themselves.`,
+    connects: [
+      { id: 'dns',        why: 'Before your browser can load a page, it uses the address book to find the server\'s location' },
+      { id: 'encryption', why: 'HTTPS is just HTTP wrapped in a layer of encryption' },
+      { id: 'ietf',       why: 'The rules for HTTP are written and updated by the internet\'s standards body' },
+      { id: 'isp',        why: 'Internet providers carry this traffic but cannot read it when it is encrypted' },
+      { id: 'cdn',        why: 'Content delivery networks handle the encrypted connection on behalf of the website' },
+    ],
+  },
+  tcpip: {
+    layer: 'protocol',
+    title: 'TCP/IP (how data travels)',
+    subtitle: 'The basic rules that govern how data moves across the internet',
+    tags: ['tech'],
+    body: `<p>Imagine sending a large jigsaw puzzle by post. You would not try to cram all 1,000 pieces into one envelope. Instead, you would split them into smaller packets, number each one, and send them in separate envelopes. The recipient would collect all the envelopes, reassemble the pieces in the right order, and build the picture. <span class="hl">TCP/IP</span> is this system, but for internet data.</p>
+<p><em>IP (Internet Protocol)</em> is the addressing system — the equivalent of postal addresses. Every device on the internet has a unique IP address (a string of numbers like 185.220.101.45), and IP ensures that data gets routed to the right destination, even if it has to travel through dozens of intermediate computers along the way.</p>
+<p><em>TCP (Transmission Control Protocol)</em> is the delivery guarantee — it splits data into packets, numbers them, sends them, and makes sure that if any packet goes missing, it gets resent until the full message arrives intact.</p>
+<p>These two protocols, designed in the 1970s, are the bedrock of the entire internet. Everything else — the web, email, video calls, apps — runs on top of them.</p>`,
+    lever: `IP addresses are a crucial forensic tool for investigators. Every time a device connects to the internet, it leaves behind a record of its IP address — like a footprint in the snow. When someone sends a grooming message, posts illegal images, or runs a harmful website, that activity is tied to an IP address. Working backwards from that address — first to the internet provider that owns it, then to the customer that was using it at that moment — is one of the primary ways suspects are identified. This is why internet providers' data retention practices (how long they keep records of who used which address) are an important policy question for child safety investigations.`,
+    connects: [
+      { id: 'isp',        why: 'Internet providers are the physical network that carries these data packets' },
+      { id: 'http',       why: 'The web\'s HTTP language travels inside TCP packets' },
+      { id: 'encryption', why: 'Encryption scrambles the contents of packets so even if intercepted, they cannot be read' },
+      { id: 'leo',        why: 'IP address records are a primary tool for identifying suspects in investigations' },
+      { id: 'ietf',       why: 'The technical rules governing how IP addressing works are maintained by the standards body' },
+    ],
+  },
+  encryption: {
+    layer: 'protocol',
+    title: 'Encryption',
+    subtitle: 'The technology that makes private communication possible online',
+    tags: ['tech','safety'],
+    body: `<p>Imagine sending a letter, but before you seal the envelope, you convert it into a secret code that only the intended recipient knows how to decode. Even if the postman reads it, all they would see is gibberish. That is essentially what <span class="hl">encryption</span> does for digital communications.</p>
+<p>There are two types that matter most for child safety policy. The first is <em>transport encryption</em> (specifically, a system called TLS): this seals the connection between your device and a website, so that internet providers and others cannot read what is passing between you. This is what creates the padlock symbol in your browser.</p>
+<p>The second, more contested type is <em>end-to-end encryption (E2EE)</em>, used by apps like WhatsApp, Signal, and iMessage. With end-to-end encryption, not even the company running the app can read your messages. The message is locked on your device and unlocked only on the recipient's device. Nobody in between — not the app company, not your internet provider, not the government — can read it.</p>`,
+    lever: `End-to-end encryption sits at the heart of one of the most difficult debates in child safety policy. The same technology that protects abuse survivors, dissidents, journalists, and domestic violence victims also prevents platforms from scanning private messages for child abuse material. Before WhatsApp introduced end-to-end encryption, it reported millions of cases of child abuse imagery to authorities each year. After encrypting messages, that number dropped towards zero — not because abuse stopped, but because the platform could no longer see it. Governments in the UK, EU, and US have proposed laws that would require platforms to either scan messages before encryption or create a "back door" that authorities could use. Critics — including security experts — warn this would make everyone's communications less secure, since any back door built for governments could also be found and exploited by criminals. This is an unresolved, high-stakes debate with no easy answers.`,
+    connects: [
+      { id: 'http',      why: 'HTTPS is simply HTTP wrapped in an encryption layer' },
+      { id: 'tcpip',     why: 'Encryption scrambles the contents of the data packets that travel across the internet' },
+      { id: 'dns',       why: 'Encrypted DNS hides which websites you are visiting from your internet provider' },
+      { id: 'isp',       why: 'Encryption prevents internet providers from reading the contents of traffic on their network' },
+      { id: 'leo',       why: 'End-to-end encryption makes it much harder for police to access evidence in criminal investigations' },
+      { id: 'ietf',      why: 'The technical standards for encryption are set and updated by the internet\'s standards body' },
+      { id: 'regulator', why: 'Regulators are actively debating whether to require changes to encryption to enable safety scanning' },
+    ],
+  },
+  ietf: {
+    layer: 'protocol',
+    title: 'The standards bodies (IETF and W3C)',
+    subtitle: 'The volunteer committees that write the rules the internet runs on',
+    tags: ['gov','tech'],
+    body: `<p>No single company invented the internet, and no single company maintains it. Instead, the technical rules that make it work — how data is packaged and sent, how web pages are formatted, how encryption works — are defined by international committees of technical experts who publish them as open standards that anyone can implement.</p>
+<p>The two most important are the <span class="hl">IETF</span> (Internet Engineering Task Force), which handles core internet protocols like TCP/IP, DNS, and email, and the <span class="hl">W3C</span> (World Wide Web Consortium), which handles web standards like HTML. Both organisations operate on a principle of rough consensus and working code — if enough technically competent people agree something is the right approach and someone has actually built it, it becomes a standard.</p>
+<p>These bodies are remarkably open. Anyone can join a working group and participate in discussions. But in practice, participation is dominated by engineers from major tech companies and telecoms providers — people with the technical knowledge and employer support to show up to meetings in person or online for years at a time.</p>`,
+    lever: `The decisions these committees make have long-lasting consequences for what is and is not possible in child safety policy. When the IETF standardises a new version of encrypted DNS, that shapes whether ISPs can block harmful domains. When the W3C debates age-verification standards for the web, that determines whether age checks on websites can work in a consistent, interoperable way. Child safety advocates have historically been almost entirely absent from these spaces — partly because the discussions are highly technical and largely inaccessible to non-engineers. This is a genuine gap. Engaging with standards processes is slow, hard work, but it shapes the infrastructure that all other interventions depend on.`,
+    connects: [
+      { id: 'http',       why: 'The IETF publishes the standards that define how HTTP works and evolves' },
+      { id: 'tcpip',      why: 'The underlying rules of TCP/IP are maintained through IETF processes' },
+      { id: 'encryption', why: 'TLS encryption standards are published and updated by the IETF' },
+      { id: 'dns',        why: 'The DNS system\'s technical rules are developed and refined through the IETF' },
+      { id: 'igi',        why: 'Standards bodies coordinate with broader governance forums on policy implications' },
+    ],
+  },
+  payments: {
+    layer: 'payments',
+    title: 'Payment processors',
+    subtitle: 'The companies that handle the money flowing across the internet',
+    tags: ['tech','safety'],
+    body: `<p>Almost every commercial website on the internet — whether it is selling shoes, subscriptions, or something harmful — needs a way to take payment. The companies that enable this are <span class="hl">payment processors</span>: Visa, Mastercard, PayPal, Stripe, and a handful of others. They are the invisible plumbing behind almost every online transaction.</p>
+<p>These companies are not just neutral infrastructure. They operate under banking regulations, anti-money laundering laws, and their own terms and conditions. They maintain lists of business types they will not serve — weapons dealers, certain gambling operators, and (in theory) operators of illegal content. When a payment processor cuts off a business, that business suddenly has no way to take money from customers, which for commercial operations can be fatal.</p>`,
+    lever: `Payment processors have emerged as a surprisingly powerful lever in child safety campaigns. When investigative journalists revealed in 2020 that a major platform was hosting videos of child sexual abuse and non-consensual intimate imagery, Visa and Mastercard suspended their services to the site within days. The platform was forced to remove millions of videos almost overnight — a faster and more comprehensive result than years of regulatory pressure had achieved. This "financial deplatforming" works because most commercial harmful content is commercial: it exists to make money, and making money requires a payment processor. The significant limitation is that alternative payment methods — particularly cryptocurrency — can be used to circumvent this, and the accountability structures of payment processors acting as de facto content moderators raise genuine democratic concerns.`,
+    connects: [
+      { id: 'adtech',    why: 'Advertising revenue and payment processing are the two ways the internet makes money' },
+      { id: 'hosting',   why: 'Hosting companies charge money — if payment is cut off, websites lose their home' },
+      { id: 'cloud',     why: 'Cloud services cost money — removing payment access can pull infrastructure from under a platform' },
+      { id: 'regulator', why: 'Financial regulators can require payment companies to stop serving illegal businesses' },
+      { id: 'leo',       why: 'Financial transaction records are a key evidence trail in abuse investigations' },
+      { id: 'tsa',       why: 'Payment companies\' own terms of service prohibit facilitating illegal transactions' },
+    ],
+  },
+  adtech: {
+    layer: 'payments',
+    title: 'Advertising and adtech',
+    subtitle: 'The hidden system that funds most of the "free" internet',
+    tags: ['tech','safety'],
+    body: `<p>If you are not paying for a product, you are — in some sense — the product. Most websites and apps that appear to be free are actually funded by advertising. But modern online advertising is nothing like a poster on a bus shelter. It is a vast, largely automated system called <span class="hl">programmatic advertising</span> that decides in milliseconds which advert to show you, based on detailed profiles built from your browsing history, location, shopping habits, and thousands of other data points.</p>
+<p>At the heart of this system are <em>ad networks</em> like Google Ads and the Meta Audience Network, which sit between advertisers (brands wanting to reach customers) and publishers (websites and apps wanting to earn money from their traffic). An ad network's software sits invisibly on millions of web pages, constantly running auctions for the right to show you an advert. The advertiser whose bid wins gets to show their ad — and the website gets a small payment. Most of this happens without any human being reviewing where the ad ended up.</p>`,
+    lever: `"Follow the money" is a well-established civil society strategy for tackling harmful content online. If a harmful website generates revenue from advertising, you can pressure the ad networks to stop serving ads to it — cutting off its income. When major brand adverts appear next to harmful content (which happens regularly because of the automated nature of the system), the public embarrassment creates pressure on ad networks to improve their targeting. This strategy, known as "brand safety" advocacy, has led to significant improvements in ad network policies. A second front is data: the detailed profiling that makes targeted advertising possible is especially problematic when applied to children. Laws like GDPR in Europe and COPPA in the US place restrictions on how children's data can be collected and used, and regulators are increasingly enforcing these rules.`,
+    connects: [
+      { id: 'payments',  why: 'Advertising and payment processing are the two financial engines of the commercial internet' },
+      { id: 'hosting',   why: 'Ad serving systems run on hosted servers and content delivery networks' },
+      { id: 'regulator', why: 'Regulators are banning certain forms of targeted advertising aimed at children' },
+      { id: 'tsa',       why: 'Platforms\' own terms set rules about what content can carry advertising' },
+      { id: 'cdn',       why: 'The code that delivers adverts is served through content delivery networks at high speed' },
+    ],
+  },
+  igi: {
+    layer: 'gov',
+    title: 'Internet governance bodies',
+    subtitle: 'The international forums where the internet\'s future gets debated',
+    tags: ['gov'],
+    body: `<p>No single government or organisation controls the internet. Instead, its rules and norms are shaped through a messy, contested, multi-layered set of international discussions involving governments, tech companies, civil society groups, and technical experts. The umbrella term for this is <span class="hl">internet governance</span>.</p>
+<p>The most significant forum is the <em>Internet Governance Forum (IGF)</em>, convened annually by the United Nations. It brings thousands of participants together from every sector to discuss everything from cybersecurity to children's rights online. Crucially, it makes no binding decisions — it is a place to build consensus and influence thinking, not to write laws. Separate bodies called Regional Internet Registries (RIPE NCC in Europe, ARIN in North America, APNIC in Asia) manage the allocation of numerical internet addresses in their regions.</p>
+<p>Other bodies — like the ITU (the UN's telecommunications agency) — have more formal powers, but are also more contested, with disagreements between countries about how much control national governments should have over their citizens' internet access.</p>`,
+    lever: `Internet governance forums are where the global norms that eventually become national laws get their first airing. A discussion at the IGF about children's rights online can, over a period of years, influence policy frameworks in multiple countries. Civil society has an unusually strong formal role here compared with many other internet policy venues — children's rights organisations, child safety campaigners, and civil liberties groups can all participate. The limitation is that none of this is binding: you can shape the conversation enormously without the outcome being automatically adopted anywhere. The work of translating forum consensus into enforceable national regulation has to happen separately.`,
+    connects: [
+      { id: 'icann',     why: 'ICANN participates in and is shaped by broader internet governance discussions' },
+      { id: 'ietf',      why: 'Technical standards bodies coordinate with governance forums on the policy implications of their decisions' },
+      { id: 'regulator', why: 'Governance forum discussions feed into national and EU-level regulatory thinking' },
+      { id: 'isp',       why: 'Decisions about how numerical internet addresses are allocated affect internet providers worldwide' },
+    ],
+  },
+  regulator: {
+    layer: 'gov',
+    title: 'National regulators',
+    subtitle: 'The government bodies with real legal power over online services',
+    tags: ['gov','safety'],
+    body: `<p>Most of the internet governance landscape is voluntary — companies choose to follow standards, industry bodies make non-binding recommendations, and platforms self-regulate. <span class="hl">National regulators</span> are different: they have the force of law behind them. They can investigate, fine, and ultimately ban companies from operating in their jurisdiction.</p>
+<p>The most significant for UK audiences is <em>Ofcom</em>, the communications regulator that now oversees the Online Safety Act and has real powers over social media platforms, search engines, and other online services. In the US, the <em>FTC</em> (Federal Trade Commission) enforces laws protecting children's privacy online. In Ireland, the <em>Data Protection Commission</em> regulates data practices — and because most major US tech companies have their European headquarters in Dublin, it is effectively the main data protection enforcer for platforms like Meta, Apple, and Google in Europe. Australia's <em>eSafety Commissioner</em> has gone further than almost any other national regulator in asserting direct power to compel platforms to remove harmful content.</p>`,
+    lever: `The wave of legislation since 2022 — the UK's Online Safety Act, the EU's Digital Services Act, and several national laws — has fundamentally changed the regulator's toolkit. Platforms now face legally binding obligations: to assess the risks their services pose to children, to take steps to mitigate those risks, to report child abuse material they find, and to design their products in ways that are appropriate for children's ages and development. Regulators can audit compliance, impose fines of up to 10% of global revenue, and require changes to products. Civil society organisations play a critical supporting role — submitting evidence to regulators, monitoring whether platforms are complying, and participating in consultations that shape how the law is interpreted and enforced.`,
+    connects: [
+      { id: 'isp',       why: 'Telecoms regulators can require internet providers to block specific sites or preserve records' },
+      { id: 'hosting',   why: 'Regulators can order hosting companies to remove content or hand over data' },
+      { id: 'cloud',     why: 'Cloud providers face requirements about where they store data and how they process it' },
+      { id: 'appstore',  why: 'App stores face mandatory child safety requirements under UK and EU legislation' },
+      { id: 'adtech',    why: 'Regulators are actively restricting how children\'s data can be used for advertising' },
+      { id: 'payments',  why: 'Financial regulators can require payment processors to stop serving illegal businesses' },
+      { id: 'encryption',why: 'Regulators are debating legally requiring changes to encryption to enable safety scanning' },
+      { id: 'icann',     why: 'Governments engage the global address body through a formal advisory committee' },
+      { id: 'tsa',       why: 'Regulators are increasingly requiring platform rulebooks to meet minimum safety standards' },
+      { id: 'leo',       why: 'Regulators and police coordinate on evidence, mandatory reporting, and enforcement' },
+    ],
+  },
+  tsa: {
+    layer: 'gov',
+    title: 'Platform rules and self-regulation',
+    subtitle: 'The rulebooks that platforms write for themselves',
+    tags: ['gov','safety'],
+    body: `<p>Before governments had much to say about what happened online, tech platforms governed themselves. Every platform has a <span class="hl">Terms of Service</span> — the (usually very long, rarely read) document you tick "I agree" to when you sign up. This is a legally binding contract between the platform and the user, setting out what is and is not allowed, and what the platform can do if you break the rules.</p>
+<p>Beyond individual platform rules, the tech industry has developed collective self-regulation initiatives — groups of companies that agree to share information about threats and work together on safety tools. The Tech Coalition, the WeProtect Global Alliance, and the Global Internet Forum to Counter Terrorism are examples. These groups can move quickly and share intelligence across company lines, which formal regulation often cannot do.</p>
+<p>Think of platform self-regulation like a private residents' association setting rules for a neighbourhood: it can work well and respond quickly, but ultimately the residents' association answers only to its members, not to the public.</p>`,
+    lever: `Self-regulation has real strengths: platforms can act globally and quickly, without waiting for governments to pass laws. When a platform decides to remove a harmful feature or implement a safety design change, it can deploy that change to a billion users overnight. But self-regulation has fundamental limits. Platforms set their own rules, enforce them inconsistently, and have no formal accountability to the public. The direction of travel since around 2020 has been strongly towards co-regulation — governments mandating minimum safety standards while regulators oversee whether platforms are meeting them. Self-regulation is increasingly becoming the floor that formal regulation builds on, rather than the ceiling it aspires to.`,
+    connects: [
+      { id: 'hosting',   why: 'Hosting company rules are a form of self-regulation about what content they will store' },
+      { id: 'cdn',       why: 'Content delivery companies can terminate service to platforms that break their own rules' },
+      { id: 'regulator', why: 'Governments are increasingly requiring platform rulebooks to meet minimum legal standards' },
+      { id: 'payments',  why: 'Payment companies\' own terms prohibit facilitating illegal activity' },
+      { id: 'appstore',  why: 'App stores set safety standards for all the apps they distribute — that is a form of self-regulation' },
+      { id: 'leo',       why: 'Platform terms of service determine how and when they cooperate with law enforcement requests' },
+    ],
+  },
+  leo: {
+    layer: 'gov',
+    title: 'Police and legal process',
+    subtitle: 'Investigating online child abuse — and the cross-border challenge',
+    tags: ['gov','safety'],
+    body: `<p>Every other layer of internet infrastructure discussed here ultimately exists to support, or at least not obstruct, the work of <span class="hl">law enforcement</span>: catching, prosecuting, and deterring the people who create, share, and consume child sexual abuse material online. This involves national police forces, but increasingly also specialist units — the UK's Child Exploitation and Online Protection Command (CEOP, part of the National Crime Agency), Europol's cybercrime centre, and the FBI's dedicated child exploitation teams.</p>
+<p>Two organisations play a particularly important bridging role. In the UK, the <em>Internet Watch Foundation (IWF)</em> provides a public hotline for reporting child abuse images online, and works with platforms and hosting companies to get material removed quickly. In the US, <em>NCMEC</em> (National Center for Missing and Exploited Children) operates the CyberTipline — a reporting mechanism that US law requires tech companies to use when they find child abuse material. Both channel reports to law enforcement around the world.</p>
+<p>The fundamental challenge is that the internet is global and law enforcement is national. A perpetrator in one country, using a platform incorporated in another, with servers in a third, is not an unusual scenario — it is the norm.</p>`,
+    lever: `Getting evidence from internet companies is a central challenge in online child exploitation investigations. A detective in the UK investigating a grooming case may need chat logs from a messaging app, customer records from a domain registrar, IP address logs from an internet provider, and payment records — all held by different companies in different countries, each with different legal processes for releasing data. International agreements called Mutual Legal Assistance Treaties (MLATs) allow countries to request evidence from each other, but the process can take months. The US CLOUD Act created a faster route for some requests, but the system is still far too slow for the pace of online offending. The data retention question — how long companies must keep records that might help investigations — is an active policy tension between privacy advocates and law enforcement.`,
+    connects: [
+      { id: 'isp',       why: 'Internet provider records of who connected to what are a primary source of investigative evidence' },
+      { id: 'hosting',   why: 'Legal orders can compel hosting companies to hand over files, logs, and account details' },
+      { id: 'cloud',     why: 'Most law enforcement data requests to US tech companies are effectively requests to cloud providers' },
+      { id: 'registrar', why: 'Who registered a website, and what details they provided, is often the first clue in an investigation' },
+      { id: 'registry',  why: 'Registries can be ordered by courts to suspend domain names being used for illegal activity' },
+      { id: 'payments',  why: 'Financial records — who paid whom for what — are a crucial evidence trail' },
+      { id: 'encryption',why: 'End-to-end encryption means the messages investigators most need are often the ones they cannot access' },
+      { id: 'regulator', why: 'Regulators and police increasingly coordinate — regulators can compel information that helps investigations' },
+      { id: 'tcpip',     why: 'Every suspect was at some point an IP address, and tracing that address is how investigations begin' },
+    ],
+  },
+};;
+
+/* ─── Layout constants ──────────────────────────────────────────── */
+const LAYER_ORDER = ['physical','naming','hosting','protocol','payments','gov'];
+
+// Colour maps (CSS vars don't work in SVG attributes)
+const COL = {
+  physical: '#2dd4a0', naming: '#60a5fa', hosting: '#c084fc',
+  protocol: '#fb923c', payments: '#f87171', gov: '#94a3b8'
+};
+const BG = {
+  physical: '#0d2820', naming: '#0d1f38', hosting: '#1e0f2e',
+  protocol: '#2a1800', payments: '#2a0f0f', gov: '#161b24'
+};
+
+// Node aspect ratio reference (logical units — scaled at render time)
+const NODE_ASPECT = 148 / 36; // width : height
+const NR_RATIO    = 8 / 36;   // corner radius as fraction of height
+const PAD_TOP_FRAC  = 0.04;   // fraction of svgH
+const PAD_BOT_FRAC  = 0.03;
+const PAD_SIDE_FRAC = 0.045;  // fraction of svgW
+const LABEL_BAND_FRAC = 0.14; // left band reserved for layer labels (wide enough for full text)
+
+/* ─── Assign positions — fills the given pixel canvas exactly ───── */
+function layoutNodes(svgW, svgH) {
+  const byLayer = {};
+  LAYER_ORDER.forEach(l => byLayer[l] = []);
+  Object.entries(DATA).forEach(([id, d]) => {
+    if (byLayer[d.layer]) byLayer[d.layer].push(id);
+  });
+
+  const nRows   = LAYER_ORDER.length;
+  const padTop  = svgH * PAD_TOP_FRAC;
+  const padBot  = svgH * PAD_BOT_FRAC;
+  const padSide = svgW * PAD_SIDE_FRAC;
+  const labelBand = svgW * LABEL_BAND_FRAC;
+
+  // Row height fills the available vertical space
+  const rowH = (svgH - padTop - padBot) / nRows;
+
+  // Node height is a comfortable fraction of row height
+  const NH = Math.min(rowH * 0.38, 42);
+  const NW = Math.min(NH * NODE_ASPECT, (svgW - padSide * 2) / 4 - 10);
+  const NR = NH * NR_RATIO;
+
+  // Reserve top strip of each row for the swimlane title label
+  const LABEL_STRIP = rowH * 0.28; // fraction of row reserved at top for label
+
+  const positions = {};
+  LAYER_ORDER.forEach((layer, li) => {
+    const ids = byLayer[layer];
+    const rowY = padTop + li * rowH;
+    // Nodes sit in the lower portion of the row, below the label strip
+    const nodeZoneTop = rowY + LABEL_STRIP;
+    const nodeZoneH   = rowH - LABEL_STRIP;
+    const cy = nodeZoneTop + nodeZoneH / 2;
+    const usableW = svgW - padSide * 2;
+    const step  = usableW / ids.length;
+    ids.forEach((id, ni) => {
+      const cx = padSide + step * ni + step / 2;
+      positions[id] = { cx, cy, x: cx - NW/2, y: cy - NH/2, rowY, rowH };
+    });
+  });
+  // Expose computed node dimensions globally for this render pass
+  layoutNodes._NW = NW;
+  layoutNodes._NH = NH;
+  layoutNodes._NR = NR;
+  layoutNodes._rowH = rowH;
+  layoutNodes._padTop = padTop;
+  layoutNodes._labelBand = svgW * LABEL_BAND_FRAC;
+  layoutNodes._labelStrip = LABEL_STRIP;
+  return positions;
+}
+
+/* ─── Build edge list (deduplicated) ────────────────────────────── */
+function buildEdges() {
+  const seen = new Set();
+  const edges = [];
+  Object.entries(DATA).forEach(([id, d]) => {
+    (d.connects || []).forEach(c => {
+      const key = [id, c.id].sort().join('--');
+      if (!seen.has(key)) {
+        seen.add(key);
+        edges.push({ a: id, b: c.id });
+      }
+    });
+  });
+  return edges;
+}
+
+/* ─── SVG helpers ───────────────────────────────────────────────── */
+function svgEl(tag, attrs, text) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const el = document.createElementNS(ns, tag);
+  Object.entries(attrs || {}).forEach(([k, v]) => el.setAttribute(k, v));
+  if (text != null) el.textContent = text;
+  return el;
+}
+
+function cubicPath(x1, y1, x2, y2) {
+  // Vertical cubic bezier — control points pulled toward centre of canvas
+  const dy = y2 - y1;
+  const cp1y = y1 + dy * 0.45;
+  const cp2y = y2 - dy * 0.45;
+  // Slight horizontal pull toward midpoint for readability
+  const mx = (x1 + x2) / 2;
+  const cp1x = x1 + (mx - x1) * 0.15;
+  const cp2x = x2 + (mx - x2) * 0.15;
+  return `M${x1.toFixed(1)},${y1.toFixed(1)} C${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`;
+}
+
+/* ─── State ─────────────────────────────────────────────────────── */
+let currentId = null;
+let positions = {};
+let edgeEls = {};   // "a--b" -> SVGElement
+let nodeEls = {};   // id -> {g, rect, labels}
+let svgW = 0, svgH = 0;
+
+/* ─── Render ────────────────────────────────────────────────────── */
+function render() {
+  const svg = document.getElementById('main-svg');
+  const wrap = document.getElementById('canvas-wrap');
+  svg.innerHTML = '';
+
+  // Measure the actual available canvas in real pixels
+  svgW = wrap.clientWidth  || window.innerWidth;
+  svgH = wrap.clientHeight || (window.innerHeight - 52);
+
+  // No viewBox — draw directly in pixel space so the diagram fills exactly
+  svg.setAttribute('width',  svgW);
+  svg.setAttribute('height', svgH);
+  svg.removeAttribute('viewBox');
+  svg.removeAttribute('preserveAspectRatio');
+  svg.style.minWidth = '';
+
+  positions = layoutNodes(svgW, svgH);
+  // Use dimensions computed by layoutNodes for this render pass
+  const NW = layoutNodes._NW, NH = layoutNodes._NH, NR = layoutNodes._NR;
+  const ROW_H = layoutNodes._rowH;
+  const PAD_TOP = layoutNodes._padTop;
+  const PAD_SIDE = svgW * PAD_SIDE_FRAC;
+  const labelBand = layoutNodes._labelBand;
+  const LABEL_STRIP = layoutNodes._labelStrip;
+  const edges = buildEdges();
+
+  // ── Defs: greyscale filter + arrowheads ──
+  const defs = svgEl('defs');
+  // Greyscale filter for dimmed nodes
+  const fGrey = svgEl('filter', { id: 'f-grey', x: '0%', y: '0%', width: '100%', height: '100%', color_interpolation_filters: 'sRGB' });
+  const feGrey = svgEl('feColorMatrix', { type: 'saturate', values: '0', in: 'SourceGraphic' });
+  fGrey.appendChild(feGrey);
+  defs.appendChild(fGrey);
+  // Arrowheads per layer colour
+  Object.entries(COL).forEach(([layer, col]) => {
+    const marker = svgEl('marker', {
+      id: `arr-${layer}`, markerWidth: '6', markerHeight: '6',
+      refX: '5', refY: '3', orient: 'auto'
+    });
+    marker.appendChild(svgEl('path', {
+      d: 'M0,0 L0,6 L6,3 z', fill: col, opacity: '0.5'
+    }));
+    defs.appendChild(marker);
+  });
+  svg.appendChild(defs);
+
+  // ── Layer bands ──
+  const bandsG = svgEl('g', { id: 'bands' });
+  LAYER_ORDER.forEach((layer, li) => {
+    const rowY = PAD_TOP + li * ROW_H;
+    // Subtle alternating band
+    const bandRect = svgEl('rect', {
+      x: 0, y: rowY, width: svgW, height: ROW_H,
+      fill: li % 2 === 0 ? 'rgba(255,255,255,0.025)' : 'rgba(255,255,255,0)',
+    });
+    bandsG.appendChild(bandRect);
+    // Layer label — top of band, left-aligned, sits in the reserved label strip
+    const ldata = LAYERS[layer];
+    const labelY = rowY + LABEL_STRIP * 0.52; // vertically centred in the strip
+    const pipR   = Math.max(3, LABEL_STRIP * 0.18);
+    const pipX   = PAD_SIDE * 0.7;
+    const lblX   = pipX + pipR + Math.max(5, LABEL_STRIP * 0.25);
+    const fontSize = Math.max(8, Math.min(11, LABEL_STRIP * 0.38));
+    const pip = svgEl('circle', {
+      cx: pipX, cy: labelY, r: pipR,
+      fill: COL[layer]
+    });
+    const label = svgEl('text', {
+      x: lblX, y: labelY,
+      'dominant-baseline': 'central',
+      'font-family': 'Inter, system-ui, sans-serif',
+      'font-size': fontSize,
+      'font-weight': '600',
+      'letter-spacing': '0.06em',
+      fill: COL[layer],
+      opacity: '0.8',
+      style: 'text-transform:uppercase'
+    }, ldata.label.toUpperCase());
+    bandsG.appendChild(pip);
+    bandsG.appendChild(label);
+    // Divider line
+    if (li > 0) {
+      bandsG.appendChild(svgEl('line', {
+        x1: 0, y1: rowY, x2: svgW, y2: rowY,
+        stroke: 'rgba(255,255,255,0.06)', 'stroke-width': '1'
+      }));
+    }
+  });
+  svg.appendChild(bandsG);
+
+  // ── Edges ──
+  const edgesG = svgEl('g', { id: 'edges' });
+  edgeEls = {};
+  edges.forEach(({ a, b }) => {
+    const pa = positions[a], pb = positions[b];
+    if (!pa || !pb) return;
+    // Edge colour = colour of the "higher" layer node (from=lower, to=higher)
+    const la = LAYER_ORDER.indexOf(DATA[a].layer);
+    const lb = LAYER_ORDER.indexOf(DATA[b].layer);
+    const srcLayer = la < lb ? DATA[a].layer : DATA[b].layer;
+    const col = COL[srcLayer];
+
+    // Connect from bottom of upper pill to top of lower pill (or mid if same row)
+    const ax = pa.cx, bx = pb.cx;
+    let ay, by;
+    if (la === lb) {
+      // Same row — connect from right to left of pills
+      ay = pa.cy; by = pb.cy;
+    } else if (la < lb) {
+      ay = pa.cy + NH/2; by = pb.cy - NH/2;
+    } else {
+      ay = pa.cy - NH/2; by = pb.cy + NH/2;
+    }
+
+    const edgeSW = Math.max(1, NH * 0.042);
+    const path = svgEl('path', {
+      d: cubicPath(ax, ay, bx, by),
+      fill: 'none',
+      stroke: col,
+      'stroke-width': edgeSW,
+      opacity: '0',
+      'stroke-linecap': 'round',
+      class: `edge edge-${a} edge-${b}`,
+    });
+    path._baseSW = edgeSW;  // store base SW so applyNodeStyles never compounds it
+    edgesG.appendChild(path);
+    const key = [a, b].sort().join('--');
+    edgeEls[key] = path;
+  });
+  svg.appendChild(edgesG);
+
+  // ── Nodes ──
+  const nodesG = svgEl('g', { id: 'nodes' });
+  nodeEls = {};
+  Object.entries(DATA).forEach(([id, d]) => {
+    const pos = positions[id];
+    if (!pos) return;
+    const col = COL[d.layer];
+    const bg  = BG[d.layer];
+
+    const g = svgEl('g', {
+      class: 'svg-node',
+      tabindex: '0',
+      role: 'button',
+      'aria-label': d.title,
+    });
+
+    // Shadow rect
+    const shadowOff = NH * 0.07;
+    const shadow = svgEl('rect', {
+      x: pos.x + shadowOff * 0.5, y: pos.y + shadowOff,
+      width: NW, height: NH, rx: NR,
+      fill: col, opacity: '0.12'
+    });
+
+    // Main pill
+    const rect = svgEl('rect', {
+      x: pos.x, y: pos.y,
+      width: NW, height: NH, rx: NR,
+      fill: bg,
+      stroke: col,
+      'stroke-width': Math.max(1, NH * 0.042),
+    });
+
+    // Label — scale font to node height; wrap if needed
+    const nodeFontSize = Math.max(9, Math.min(13, NH * 0.32));
+    const charsPerLine = Math.max(10, Math.floor(NW / (nodeFontSize * 0.6)));
+    const lines = wrapSvgText(d.title, charsPerLine);
+    const lineH = nodeFontSize * 1.2;
+    const labels = lines.map((line, li) => {
+      const ty = pos.cy - ((lines.length - 1) * lineH / 2) + li * lineH;
+      return svgEl('text', {
+        x: pos.cx, y: ty,
+        'text-anchor': 'middle',
+        'dominant-baseline': 'central',
+        'font-family': 'Inter, system-ui, sans-serif',
+        'font-size': nodeFontSize,
+        'font-weight': '600',
+        fill: col,
+      }, line);
+    });
+
+    g.appendChild(shadow);
+    g.appendChild(rect);
+    labels.forEach(l => g.appendChild(l));
+
+    g.addEventListener('click', () => selectNode(id));
+    g.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectNode(id); }
+    });
+    g.addEventListener('mouseenter', () => onNodeEnter(id));
+    g.addEventListener('mouseleave', () => onNodeLeave(id));
+
+    nodesG.appendChild(g);
+    const _sw = parseFloat(rect.getAttribute('stroke-width'));
+    nodeEls[id] = { g, rect, shadow, labels, _sw };
+  });
+  svg.appendChild(nodesG);
+
+  // ── Legend ──
+  buildLegend();
+
+  // Re-apply selection state if any
+  if (currentId) applyNodeStyles(currentId, true);
+}
+
+/* ─── Hover state ───────────────────────────────────────────────── */
+let hoveredId = null;  // track which node mouse is over
+
+function onNodeEnter(id) {
+  hoveredId = id;
+  if (currentId) {
+    // Drawer open — show preview of this hovered node over the selected state
+    applyNodeStyles(id, false, true);
+  } else {
+    applyNodeStyles(id, false, false);
+  }
+}
+
+function onNodeLeave(id) {
+  hoveredId = null;
+  if (currentId) {
+    // Return to the selected node's state
+    applyNodeStyles(currentId, true);
+  } else {
+    resetNodeStyles();
+  }
+}
+
+/* ─── Select node ───────────────────────────────────────────────── */
+function selectNode(id) {
+  currentId = id;
+  applyNodeStyles(id, true);
+  openDrawer(id);
+}
+
+// applyNodeStyles(id, isSelected, isPreview)
+// isSelected = true  → clicked (solid fill active node, greyscale unrelated)
+// isSelected = false → hover (thicker border active node, greyscale unrelated)
+// isPreview          → from drawer pill hover (same as hover but no state change)
+function applyNodeStyles(id, isSelected, isPreview) {
+  const d = DATA[id];
+  if (!d) return;
+  const connectedIds = new Set((d.connects || []).map(c => c.id));
+
+  Object.entries(nodeEls).forEach(([nid, el]) => {
+    const isActive = nid === id;
+    const isConn   = connectedIds.has(nid);
+    const col = COL[DATA[nid].layer];
+    const bg  = BG[DATA[nid].layer];
+
+    el.g.classList.remove('node-dim');
+
+    if (isActive) {
+      el.g.setAttribute('opacity', '1');
+      if (isSelected) {
+        // Solid fill, white text
+        el.rect.setAttribute('fill', col);
+        el.rect.setAttribute('stroke', col);
+        el.rect.setAttribute('stroke-width', el._sw);
+        el.shadow.setAttribute('opacity', '0.25');
+        el.labels.forEach(l => l.setAttribute('fill', '#0a0a0c'));
+      } else {
+        // Hover — background fill stays, just thicker border
+        el.rect.setAttribute('fill', bg);
+        el.rect.setAttribute('stroke', col);
+        el.rect.setAttribute('stroke-width', el._sw * 2.2);
+        el.shadow.setAttribute('opacity', '0.22');
+        el.labels.forEach(l => l.setAttribute('fill', col));
+      }
+    } else if (isConn) {
+      el.g.setAttribute('opacity', '1');
+      // Connected — slightly thicker border, full colour
+      el.rect.setAttribute('fill', bg);
+      el.rect.setAttribute('stroke', col);
+      el.rect.setAttribute('stroke-width', el._sw * 1.8);
+      el.shadow.setAttribute('opacity', '0.15');
+      el.labels.forEach(l => l.setAttribute('fill', col));
+    } else {
+      // Unrelated — greyscale + heavily faded
+      el.g.classList.add('node-dim');
+      el.g.setAttribute('opacity', isSelected ? '0.18' : '0.35');
+      el.rect.setAttribute('fill', bg);
+      el.rect.setAttribute('stroke', col);
+      el.rect.setAttribute('stroke-width', el._sw * 0.6);
+      el.shadow.setAttribute('opacity', '0');
+      el.labels.forEach(l => l.setAttribute('fill', col));
+    }
+  });
+
+  // Edges — always use the stored base SW, never read back current attribute
+  const edges = buildEdges();
+  edges.forEach(({ a, b }) => {
+    const key = [a, b].sort().join('--');
+    const el = edgeEls[key];
+    if (!el) return;
+    const isEdgeActive = (a === id && connectedIds.has(b)) || (b === id && connectedIds.has(a));
+    if (isEdgeActive) {
+      const la = LAYER_ORDER.indexOf(DATA[a].layer);
+      const lb = LAYER_ORDER.indexOf(DATA[b].layer);
+      const srcLayer = la < lb ? DATA[a].layer : DATA[b].layer;
+      el.setAttribute('stroke', COL[srcLayer]);
+      el.setAttribute('stroke-width', el._baseSW * (isSelected ? 2 : 1.5));
+      el.setAttribute('opacity', isSelected ? '0.7' : '0.55');
+    } else {
+      el.setAttribute('opacity', '0');
+    }
+  });
+}
+
+function resetNodeStyles() {
+  Object.entries(nodeEls).forEach(([nid, el]) => {
+    const col = COL[DATA[nid].layer];
+    const bg = BG[DATA[nid].layer];
+    el.g.classList.remove('node-dim');
+    el.g.setAttribute('opacity', '1');
+    el.rect.setAttribute('fill', bg);
+    el.rect.setAttribute('stroke', col);
+    el.rect.setAttribute('stroke-width', el._sw);
+    el.shadow.setAttribute('opacity', '0.12');
+    el.labels.forEach(l => l.setAttribute('fill', col));
+  });
+  const edges = buildEdges();
+  edges.forEach(({ a, b }) => {
+    const key = [a, b].sort().join('--');
+    const el = edgeEls[key];
+    if (el) el.setAttribute('opacity', '0');
+  });
+}
+
+/* ─── Drawer ────────────────────────────────────────────────────── */
+function openDrawer(id) {
+  const d = DATA[id];
+  if (!d) return;
+  const layer = LAYERS[d.layer];
+  const col = COL[d.layer];
+  const bg  = BG[d.layer];
+
+  const tagLabels = { tech: 'Technical', gov: 'Governance', safety: 'Child safety lever' };
+  const tags = (d.tags || []).map(t =>
+    `<span class="tag tag-${t}">${tagLabels[t] || t}</span>`
+  ).join('');
+
+  const connItems = (d.connects || []).map(c => {
+    const cd = DATA[c.id];
+    if (!cd) return '';
+    const cc = COL[cd.layer], cb = BG[cd.layer];
+    return `<button class="conn-pill"
+      onclick="selectNode('${c.id}')"
+      onmouseenter="onConnPillEnter('${c.id}')"
+      onmouseleave="onConnPillLeave()"
+      style="--cpill-color:${cc};--cpill-bg:${cb}">
+      <div class="conn-pill-dot"></div>
+      <div>
+        <div class="conn-pill-name">${cd.title}</div>
+        <div class="conn-pill-why">${c.why}</div>
+      </div>
+    </button>`;
+  }).join('');
+
+  document.getElementById('drawer-content').innerHTML = `
+    <div style="--node-color:${col};--node-bg:${bg}">
+      <div class="detail-eyebrow">${layer.label}</div>
+      <h2 class="detail-title">${d.title}</h2>
+      <p class="detail-subtitle">${d.subtitle}</p>
+      <div class="tags">${tags}</div>
+      <div class="detail-body">${d.body}</div>
+      ${d.lever ? `<div class="lever-box">
+        <div class="lever-title">Safety levers &amp; policy relevance</div>
+        <div class="lever-body">${d.lever}</div>
+      </div>` : ''}
+      ${connItems ? `<div class="conn-section">
+        <div class="conn-section-title">Connects to ${d.connects.length} other components</div>
+        <div class="conn-list">${connItems}</div>
+      </div>` : ''}
+    </div>`;
+
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('active');
+  document.getElementById('canvas-wrap').classList.add('drawer-open');
+  document.querySelector('.drawer').scrollTop = 0;
+  // Re-render after transition so layout fills the new canvas size
+  setTimeout(() => { render(); if (currentId) applyNodeStyles(currentId, true); }, 300);
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('active');
+  document.getElementById('canvas-wrap').classList.remove('drawer-open');
+  const _closedId = currentId;
+  currentId = null;
+  // Re-render after transition so diagram fills the full canvas again
+  setTimeout(() => {
+    render();
+    if (hoveredId) applyNodeStyles(hoveredId, false);
+  }, 300);
+}
+
+/* ─── Legend ────────────────────────────────────────────────────── */
+function buildLegend() {
+  const body = document.getElementById('legend-body');
+  if (!body) return;
+  body.innerHTML = LAYER_ORDER.map(layer => {
+    const col = COL[layer];
+    const label = LAYERS[layer].label;
+    return `<div class="legend-row">
+      <div class="legend-pip" style="background:${col}"></div>
+      <span>${label}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ─── Utilities ─────────────────────────────────────────────────── */
+function wrapSvgText(str, maxChars) {
+  const words = str.split(' ');
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    if ((cur + (cur ? ' ' : '') + w).length > maxChars && cur) {
+      lines.push(cur); cur = w;
+    } else {
+      cur += (cur ? ' ' : '') + w;
+    }
+  }
+  if (cur) lines.push(cur);
+  // Max 2 lines — truncate rest with ellipsis
+  if (lines.length > 2) {
+    lines.splice(2);
+    lines[1] = lines[1].replace(/\s\S+$/, '…');
+  }
+  return lines;
+}
+
+/* ─── Drawer conn-pill hover → preview on diagram ───────────────── */
+function onConnPillEnter(targetId) {
+  // Show the target node's connections as a preview, overriding current selection display
+  applyNodeStyles(targetId, false, true);
+}
+function onConnPillLeave() {
+  // Restore the currently selected node's state
+  if (currentId) applyNodeStyles(currentId, true);
+}
+
+/* ─── Keyboard close ────────────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDrawer();
+});
+
+/* ─── Init & resize ─────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  render();
+});
+// Re-render on any resize — we measure real pixels each time
+let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(render, 60);
+});
+</script>
+</body>
+</html>
